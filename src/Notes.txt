@@ -1,0 +1,192 @@
+ha 
+  1. Stuff from Robin's course 
+      - instantiation of app.jsx happens in main.jsx. See p45
+
+          Two libraries are imported: react and react.DOM.
+             React DOM is usually used once in a React application to hook React 
+             into the native HTML world.
+          import React from 'react';             
+          import ReactDOM from 'react-dom/client';
+          import App from './App';
+ 
+          import './index.css';
+
+          ReactDOM.createRoot(document.getElementById('root')).render(
+            <React.StrictMode>
+               <App /> //Instantiatin App component
+            </React.StrictMode>,
+          )
+     
+         - you can eliminate the "return" statement from a function 
+           defined with arrow function if the function only returns JSX and 
+           dont perform any task (means no business logic)
+   
+      (2) Event Handlers. Three kinds of event handlers:
+           - event handlers 
+             inline event handlers 
+             callback event handlers.
+           - some event attributes of elements like button:
+             onClick event, onChange event, onSubmit event         
+
+      (3) React Props   
+           -all function components by convention receive "props" even if the function 
+
+
+  2. Stuff from Intro to React by Burma:
+
+  https://app.pluralsight.com/course-player?clipId=5e6dbb5d-1206-48bb-b0ec-f87b043e0f79
+  Exercises using Paground: https://jscomplete.com/playground 
+
+   React Basic Concepts 
+     1. Components
+        - the first concept is components. We define user interfaces using components 
+          line "functions". Think component as just functions
+
+        - the second is they receive Inputs: props, state | Output: UI
+
+        - third - components are reusable and composable. Components can contain other components.
+
+        - Fourth - components can manage a private state.
+
+        - a React component can be "Function" or a "Class"
+
+
+     2. Second concept is "Reactive Updates"
+
+     3. Third Concept - maintains virtual views in memory.
+        It generates HTML using JavaScript. No HTML Language. Handles 
+        DOM tree reconciliation
+
+
+   How to define a function in ReaCT
+
+      1. By using the keyword function - Regular Syntax
+           function Hello{
+              return <div> Hello React </div>;
+           }
+
+          Note: all function components by convention receive "props" even if the function 
+          doesn't have the param "props 
+          function Button(props) {
+	            return ( 
+                  <button onClick={props.onClickFunction}>
+                     + {props.increment}
+                 </button>
+              );
+            }
+
+
+
+      2. Create a react component without using the word "function 
+         but by using the ARROW FUNCTION. An arrow allows to skip return keyword, 
+            //using arrow functions without parameters
+             const Y = () =>{
+            };
+
+            
+            // arrow function with parameters
+            const hello = (val) => {
+               "Hello " + val;
+            } 
+
+          
+
+       3. Props 
+            //Note: all function components by convention receive "props" even if the function 
+            //doesn't have the param "props 
+            function Button(props) {
+	            return ( 
+                  <button onClick={props.onClickFunction}>
+                     + {props.increment}
+                 </button>
+              );
+            }
+
+            //sample of passing props to a component defined wit harrow function
+            const PlayNumber = props => (
+          	<button className="number" onClick={() => console.log('Num', props.number)}>
+               {props.number}
+            </button>
+          );
+
+   
+           //Define another component whose sole responsibility is to display the 
+           //value of the counter. It will not have it's own state.
+            //we are using parentheses after return because we are returning a 
+            //function call, remember, a React.createElement function call.
+
+            //since we are passing a prop to display in line 136, add a param here called "props"
+            //you can call it any name you want but usually it is named "props" thats the convention
+
+            //This "props" object will have a key-value pair for each attribute
+            function Display(props){
+                 return (  
+                   //Access the "message" attribute in the props
+                   <div>{props.message} </div>
+                 );
+            }
+        
+            //Simplify rendering by creating a new component called App
+            //within App return a DOM tree that contains <button/> amd <displa/> components
+
+            function App()
+            {
+              /*move the state hook here so that Button and Display components can access it
+              via prop */
+                const [counter, setCounter] = useState(42);
+                //add function to increment counter 
+                const incrementCounter = () => setCounter{counter +1};
+                return(
+                    <div>
+                      //props can also pass function.
+                      // 1. Pass a prop {incrementCounter} to Button component  
+                      // will pass "incrementCounter" function
+                      // 2. Pass another prop "increment={5} to be used by Button component
+                      <Button onclickFunction={incrementCounter} increment={5}  />
+                      //pass a prop and name it message
+                      <Display message{counter} />
+                    </div>
+                );
+            }
+
+   Props, State and callback handlers
+     1. Props - props are passed down as information from parent to child components
+         only. we can only talk to descendant components.
+
+     2. State - state can be used to change information over time. When using state, we can make information stateful, 
+        but this information can also only be passed down by using props as container.
+
+     3. useState:
+          How to use useState in React: https://www.robinwieruch.de/react-usestate-hook/
+
+          When the user types into the input field, the input field's change event
+          runs into the event handler. The handler's logic uses the event's value 
+          of the target and the state updater function to set the updated state. 
+          Afterward, the component re-renders (read: the component function runs). 
+          The updated state becomes the current state (here: searchTerm) and is 
+          displayed in the component's JSX.
+
+         Example of useState  
+
+            And whenever this stateful value changes, the affected components 
+            (here: Search component) will re-render to use it 
+            (here: to display the recent value).
+                1. setSearchTerm is the state updater function
+                2. searchTerm is the state
+                3. React.useState('') this method sets the initial value
+          const [searchTerm, setSearchTerm] = React.useState('');
+
+   Props Handling 
+     1. Props Destructuring via Object Destructuring
+          const user = {
+           firstName: 'Robin',
+           lastName: 'Wieruch',
+           };
+         
+         // without object destructuring
+         const firstName = user.firstName;
+         const lastName = user.lastName;
+         
+         // with object destructuring
+         const { firstName, lastName } = user;
+       
