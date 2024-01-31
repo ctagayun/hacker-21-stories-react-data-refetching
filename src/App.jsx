@@ -1,33 +1,67 @@
 /*================================================================
- React Data Re-Fetching
-   Task:  
-      The search feature is a client-side search, because it 
-   filters only the data that's already there. Instead it should be 
-   possible to use the search to fetch data related to the search term.
+ Explicit Data Fetching Using Axios
+    
+   Task: 
+     Not all browser supports "fetch". 
 
-      There are not many steps involved to migrate the application 
-    from a client-side to a server-side search
+     One alternative is to substitute the native fetch API with a 
+   stable library like axios, which performs asynchronous requests 
+   to remote APIs. In this section, we will discover how to substitute 
+   a library -- a native API of the browser in this case -- with another 
+   library from the npm registry.
+   
+   Optional Hints Explicit Data Fetching Using Axios:
+     - run npm install axios in command line
 
-  Optional Hints:
-     - Use this https://hn.algolia.com/api/v1/search?query=React 
-     API endpoint of the Hacker News API
+     - add import statement: 
+         import axios from 'axios'; 
 
-     - Remove the initialStories variable, because this data will 
-     come from the API.
+     - modify handleFetchStories;
 
-     - remove getAsyncStories because will fetch the data directly from the API.
-     - Use the browser's native fetch API to perform the request.
+   Previous Task Explicit Data Fetching: 
+       The server-side search executes every time a user types into 
+   the input field. The new implementation should only execute a search 
+   when a user clicks a confirmation button. As long as the button is 
+   not clicked, the search term can change but isn't executed as 
+   API request.
 
-     - Note: A successful or erroneous request uses the same 
-     implementation logic that we already have in place.
+   Previous Task: (from prev section memoizing) Kept it here so that I wont forget.
+     We will refactor the code upfront to use a memoized 
+   function and provide the explanations afterward. The refactoring 
+   consists of moving all the data fetching logic from the 
+   side-effect into a arrow function expression (A), wrapping this 
+   new function into React's useCallback hook (B), and invoking 
+   it in the useEffect hook (C):
 
-     - The derived value searchedStories can be removed, because we expect the 
-     data to come filtered from the API. 
+  Optional Hints Explicit Data Fetching:
+    - 
+    - (AA) Add a button element to confirm the search request.
+      But first of all, create a new button element which confirms 
+      the search and executes the data request eventually (AA)
+
+    - (BB) rename handler 'handleSearch' to handleSearchInput. 
      
-     - For the data fetching, the hardcoded 'react' needs to get replaced 
-     by the searchTerm. Handle the edge case when searchTerm is an empty string.
+      (CC)Create a a handler for the button which sets the new 
+      state value. The button's event handler sets confirmed search as 
+      state by using the current search term.  
+         
+    - Only when the new confirmed search is set as state, 
+      execute the side-effect to perform a server-side search.
+ 
+    - (DD) after creating a handler for the button, create a state 
+      called 'url' using the API and concatenated with the value of the 
+      search input box
+           const [url, setUrl] = React.useState(
+              `${API_ENDPOINT}${searchTerm}`);
 
+     - (EE) Instead of running the data fetching side-effect on 
+      every searchTerm change (which happens each time the 
+      input field's value changes like we have seen before), 
+      the new stateful url is used whenever a user changes it 
+      by confirming a search request when clicking the button:
 
+      TO TEST: enter search criteria and click Submit button
+     
   Review what is useState?
       - https://www.robinwieruch.de/react-usestate-hook/
 
@@ -50,6 +84,7 @@
 
 =============================================*/
 import * as React from 'react';
+import axios from 'axios';
 
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
@@ -159,6 +194,7 @@ const App = () => {
     'React'
   );
 
+  
   /*
     Take the following hooks: And merge them into one useReducer 
  hook for a unified state. Because technically, all states related 
@@ -189,40 +225,48 @@ const App = () => {
                                                    //is error=false
   );
 
-  //After merging the three useState hooks into one Reducer hook,
-  //we cannot use the state updater functions from React's 
-  //useState Hooks anymore like:
-  //     setIsLoading, setIsError
-  //everything related to asynchronous data fetching must now use 
-  //the new dispatch function "dispatchStories" see (A)
-  //for updating state transitions 
+  //(DD) new handler of the button sets the new stateful value 
+  //called 'url' which is derived from the current searchTerm and 
+  //the static API endpoint as a new state:
+  const [url, setUrl] = React.useState(
+    `${API_ENDPOINT}${searchTerm}`
+  );
+
+  /*   Memoized useEffect
+    After merging the three useState hooks into one Reducer hook,
+  we cannot use the state updater functions from React's 
+  useState Hooks anymore like:
+       setIsLoading, setIsError
+  everything related to asynchronous data fetching must now use 
+  the new dispatch function "dispatchStories" see (A)
+  for updating state transitions 
+
   React.useEffect(() => {
 
-    // if `searchTerm` is not present
-    // e.g. null, empty string, undefined
-    // do nothing
-    // more generalized condition than searchTerm === ''
-    if (!searchTerm) return;
+     if `searchTerm` is not present
+      e.g. null, empty string, undefined
+      do nothing
+      more generalized condition than searchTerm === '' 
 
-     //dispatchStories receiving different payload
-    dispatchStories({ type: 'STORIES_FETCH_INIT' }); //for init
+    if (!searchTerm) return;
+     dispatchStories receiving different payload
+     dispatchStories({ type: 'STORIES_FETCH_INIT' }); //for init
                      //dispatchStories receives STORIES_FETCH_INIT as type
 
-    //First - API is used to fetch popular tech stories for a certain query 
-    //        (a search term). In this case  we fetch stories about 'react' (B)
+    First - API is used to fetch popular tech stories for a certain query 
+            (a search term). In this case  we fetch stories about 'react' (B)
 
-    //Second - the native browser's fetch API (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
-    //         to make this request.
-    //         For 'fetch' API, the response needs to be translated to JSON (C)
+    Second - the native browser's fetch API (see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+             to make this request.
+             For 'fetch' API, the response needs to be translated to JSON (C)
     
-    //Finally - the returned result has a different data structure which we send
-    //          payload to our component's state reducer (dispatchStories)
+    Finally - the returned result has a different data structure which we send
+              payload to our component's state reducer (dispatchStories)
    
-    //We need to migrate the search to server-side search
-    //Instead of using the hardcoded search term (here: 'react'), use the 
-    //actual searchTerm from the component's state like the following code.
+    We need to migrate the search to server-side search
+    Instead of using the hardcoded search term (here: 'react'), use the 
+    actual searchTerm from the component's state like the following code.
 
-    //change fetch(`${API_ENDPOINT} react`) query parameter to {searchTerm}
     fetch(`${API_ENDPOINT}${searchTerm}`) // B
       .then((response) => response.json()) // C
       .then((result) => {
@@ -235,20 +279,102 @@ const App = () => {
         dispatchStories({type:'STORIES_FETCH_FAILURE'})
       );
     }, [searchTerm]); //If we would want to run the side-effect also when the
-                      // searchTerm changes, we would have to include it in 
-                      //the dependency array:
+                       searchTerm changes, we would have to include it in 
+                      the dependency array:
+  */
+
+  //Memoized the above useEffect() by using useCallBack hook.
+  //The refactoring consists of:
+  // 1. moving all the data fetching logic from the side-effect 
+  //    into a arrow function expression (A)
+  // 2. Then wrapping this new function into React.useCallback (B)
+  // 3. and invoking it in the useEffect hook (C):
+  
+  //  1. Mainly what we did is to extract a function from React's useEffect Hook
+  //     commented out above. Instead of using the data fetching logic directly 
+  //     in the side-effect , we made it available as a function for the 
+  //     entire application.
+  //     The benefit: reusability. The data fetching can be used by other parts 
+  //     of the application by calling this new function. (A)
+  //
+  //   2. We wrapped the whole function using useCallBack hook (B)
+  //      useCallBack function hook creates a memoized function
+  //      every time its dependency array (E) changes as result 
+  //      useEffect hook  handleFetchStories() runs again (C)
+  //      because it depends on the new memoized function "handleFetchStories"
+
+  // A 
+  
+  const handleFetchStories = React.useCallback(() => { // B
+    if (!searchTerm) return;
+ 
+    dispatchStories({ type: 'STORIES_FETCH_INIT' });
+ 
+    //fetch(`${API_ENDPOINT}${searchTerm}`)
+    //fetch(url) //DD use the stateful 'url'
+    axios
+      .get(url) //call axios.get() for HTTP GET use the stateful 'url'
+      .then((result) => {
+        dispatchStories({
+          type: 'STORIES_FETCH_SUCCESS',
+          payload: result.data.hits,
+        });
+      })
+      .catch(() =>
+        dispatchStories({ type: 'STORIES_FETCH_FAILURE' })
+      );
+     // [searchTerm])  with 'url (DD)
+  }, [url]) //replace 'searhTerm' with stateful 'url' 
+       const myDependencyArray = JSON.stringify(searchTerm);
+       console.log("dependency array SearchTerm value = " + myDependencyArray);
+        ; //EOF //E - every time searchTerm dependency array (E) changes 
+                    //useCallback Hook creates a memoized function. As a
+                    //result React.useEffect runs again (C) because it depends 
+                    //on the new function (D)
+
+                    //React's useCallback hook changes the function only 
+                    //when one of its values in the dependency array (E) changes. 
+                    //That's when we want to trigger a re-fetch of the data, 
+                    //because the input field has new input and we want to see 
+                    //the new data displayed in our list.
+                    //Note: the dependency array contains the stuff we type in 
+                    //the input field
+
+  //useEffect executes every time [searchTerm] dependency array (E) changes.
+  //As a result it runs again the memoized function (C) because it depends
+  //on the new function "handleFetchStories" (D)
+  React.useEffect(() => { 
+    handleFetchStories(); // C
+  }, [handleFetchStories]); // D   (EOF)
+
   
   const handleRemoveStory = (item) => {
     dispatchStories({
       type: 'REMOVE_STORY',
       payload: item,
     });
-  };
+  };  //EOF handleRemoveStory
 
-  const handleSearch = (event) => {
+ 
+
+  //(BB) rename handler handleSearch to handleSearchInput
+  ///renamed handler of the input field still sets 
+  //the stateful searchTerm,
+  const handleSearchInput = (event) => {
     setSearchTerm(event.target.value);
   };
 
+  //(CC) create new handler for the button.
+  //While the renamed handler of the input field still sets 
+  //the stateful searchTerm ... the new handler of the button 
+  //sets the new stateful value called 'url' which is derived 
+  //from the current searchTerm and the static API endpoint 
+  //as a new state
+  const handleSearchSubmit = () => {  //CC
+    setUrl(`${API_ENDPOINT}${searchTerm}`);
+  };
+
+  
    return (
     <div>
       <h1>My Hacker Stories</h1>
@@ -257,11 +383,18 @@ const App = () => {
         id="search"
         value={searchTerm}
         isFocused
-        onInputChange={handleSearch}
+        onInputChange={handleSearchInput} //BB
       >
         <strong>Search:</strong>
       </InputWithLabel>
 
+      <button //(AA) this button confirms the search and executes the data request.
+        type="button"
+        disabled={!searchTerm}
+        onClick={handleSearchSubmit} //CC
+      >
+        Submit
+      </button>
       <hr />
 
       {stories.isError && <p>Something went wrong ...</p>}
