@@ -11,7 +11,7 @@
    library from the npm registry.
    
    Optional Hints Explicit Data Fetching Using Axios:
-     - run npm install axios in command line
+     - run npm install axios in VSCode terminal
 
      - add import statement: 
          import axios from 'axios'; 
