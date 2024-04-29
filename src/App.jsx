@@ -134,6 +134,7 @@ const storiesReducer = (state, action) => {
                                //dispatch function
                                //so we need to add it here
       return {
+         
         ...state,              //return new state object with KV pairs
                                //via spread operator from current state object
         isLoading: true,
