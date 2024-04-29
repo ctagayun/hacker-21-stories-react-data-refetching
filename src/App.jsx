@@ -85,6 +85,7 @@
 =============================================*/
 import * as React from 'react';
 import axios from 'axios';
+import { SpinnerCircular } from 'spinners-react';
 
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
@@ -306,6 +307,7 @@ const App = () => {
   // A 
   
   const handleFetchStories = React.useCallback(() => { // B
+ 
     if (!searchTerm) return;
  
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
@@ -315,6 +317,7 @@ const App = () => {
     axios
       .get(url) //call axios.get() for HTTP GET use the stateful 'url'
       .then((result) => {
+        sleep();
         dispatchStories({
           type: 'STORIES_FETCH_SUCCESS',
           payload: result.data.hits,
@@ -323,6 +326,7 @@ const App = () => {
       .catch(() =>
         dispatchStories({ type: 'STORIES_FETCH_FAILURE' })
       );
+      
      // [searchTerm])  with 'url (DD)
   }, [url]) //replace 'searhTerm' with stateful 'url' 
        const myDependencyArray = JSON.stringify(searchTerm);
@@ -340,6 +344,7 @@ const App = () => {
                     //Note: the dependency array contains the stuff we type in 
                     //the input field
 
+
   //useEffect executes every time [searchTerm] dependency array (E) changes.
   //As a result it runs again the memoized function (C) because it depends
   //on the new function "handleFetchStories" (D)
@@ -355,7 +360,10 @@ const App = () => {
     });
   };  //EOF handleRemoveStory
 
- 
+  function sleep(ms = 15000) {
+    console.log('Kindly remember to remove `sleep`');
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
   //(BB) rename handler handleSearch to handleSearchInput
   ///renamed handler of the input field still sets 
@@ -400,7 +408,8 @@ const App = () => {
       {stories.isError && <p>Something went wrong ...</p>}
 
       {stories.isLoading ? (
-        <p>Loading ...</p>
+        //<p>Loading ...</p>
+        <SpinnerCircular />
       ) : (
         <List
           //list={searchedStories} //First, remove searchedStories because we will 
